@@ -45,7 +45,7 @@ class Application(ThemedTk):
 
         self.primary_frame = Frame(self, bg='gray75', bd=1); self.primary_frame.pack(anchor="e")
         self.primary_panel = Label(self.primary_frame, bd=0, width=20, height=40, bg="gray95"); self.primary_panel.pack(padx=0,pady=0)
-
+        
         self.create_gui()
 
 
