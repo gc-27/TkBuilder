@@ -1,5 +1,6 @@
 from tkinter import Tk, mainloop, Button, Label, Frame
 from json import load
+from ttkthemes import ThemedTk
 
 """
 Written by gamerchungus27
@@ -74,7 +75,7 @@ class TkReader:
         self.__elements.append((name, item, x, y))
 
     def _init_window(self):
-        self.WINDOW = Tk()
+        self.WINDOW = ThemedTk()
         self.WINDOW.title('Built Window')
         self.WINDOW.update()
         
@@ -105,7 +106,7 @@ class TkReader:
             try:
                 highest_loading_order = -1
                 filtered_items = []
-                for name, properties in self.dict.items():  #Loops through the individual elements and sorts them by their loading order.
+                for name, properties in self.dict['objects'].items():  #Loops through the individual elements and sorts them by their loading order.
                     if properties["load_order"] > highest_loading_order:
                         highest_loading_order = properties["load_order"]
                         filtered_items.append([])

@@ -33,8 +33,7 @@ def create_combobox(owner_window:object, name:str, master:object, value:list, wi
 class Application(ThemedTk):
     def __init__(self):
         super().__init__()
-        self.style = Style()
-        self.style.theme_use('arc')
+        Style(self).theme_use('arc')
         self.title("TkBuilder")
         self.real_children = []
         self.resizable(True,True)
@@ -75,7 +74,7 @@ class Application(ThemedTk):
     
 
 
-class APP_WINDOW(Tk):
+class APP_WINDOW(ThemedTk):
     def __init__(self):
         super().__init__()
         self.style = Style(self)
@@ -90,7 +89,7 @@ class APP_WINDOW(Tk):
         self.bind("<Map>", self.unminimised)
         self.bind("<Unmap>", self.minimised)
 
-        create_button(self, "test_button", self, "test", 5, 2, "gray90", 0, 10, 10)
+        create_button(self, "test_button", self, "TEST_BUTTON", 5, 2, "gray90", 0, 10, 10)
 
     
     def place_element(self, item, x, y):
@@ -111,10 +110,11 @@ class APP_WINDOW(Tk):
 
     def save_json(self):
         if self.winfo_children():
-            data = {}
+            data = {"window_data": {},
+                    "objects": {}}
             with open("output.tkbuilt.json", "w") as file:
                 for child in self.real_children:
-                    data[str(child.winfo_name())] = {
+                    data["objects"][str(child.winfo_name())] = {
                             "item_type": child.widgetName,
                             "load_order": child.load_order,
                             "master": child.master.name,
@@ -126,9 +126,10 @@ class APP_WINDOW(Tk):
                             "y": child.winfo_y(),
                         }
                     try: #Checks to see if object has "text" option. If not, passes.
-                        data[str(child.winfo_name())]['text'] = child['text']
+                        data['objects'][str(child.winfo_name())]['text'] = child['text']
                     except Exception as e:
-                        pass
+                        print(e)
+                data["window_data"] = {"test": "test"}
                 dump(data, file)
 
        
