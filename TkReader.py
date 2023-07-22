@@ -21,6 +21,14 @@ class FileNotLoadedError(Exception):
 class TkReader:
     """
     The base class for reading, loading and building TkBuilt files.
+    \n
+    Functions: 
+    \n
+    load_file() -> Loads a file from the given path.
+    \n
+    read_file() -> Reads the file once loaded. Can only be called if load_file() returns a valid response.
+    \n
+    BUILD() -> Builds the window for use, and will return all mutable variables in a dictionary.
     """
 
     def __init__(self):
@@ -49,15 +57,15 @@ class TkReader:
                 bd=properties['bd'],
                 text=properties['text'], 
                 width=properties['width'], 
-                height=properties['height']))
+                height=properties['height'])
+            )
         self._add_element(name, getattr(self, name), properties['x'], properties['y'])
     
     def _build_frame(self, name: str, properties: dict):
         setattr(self, name, 
             Frame(master=getattr(self, properties['master']), 
                 bg=properties['bg'],
-                bd=properties['bd'], 
-                text=properties['text'], 
+                bd=properties['bd'],
                 width=properties['width'], 
                 height=properties['height'],))
         self._add_element(name, getattr(self, name), properties['x'], properties['y'])
@@ -112,6 +120,10 @@ class TkReader:
                                 self._build_button(item['name'], item['properties'])
                             case 'label':
                                 self._build_label(item['name'], item['properties'])
+                            case 'frame':
+                                self._build_frame(item['name'], item['properties'])
+                            case _:
+                                print(f"{item['properties']['item_type']} is not a proper Tk object.")
 
 
                 
@@ -127,7 +139,7 @@ class TkReader:
     
     def BUILD(self) -> dict:
         """
-        Compiles the Tkinter window and returns all modifiable variables in a dict.
+        Compiles the Tkinter window and returns all mutable variables in a dict.
         """
         for name,item,x,y in self.__elements:
             setattr(self, name, item)

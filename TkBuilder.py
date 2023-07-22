@@ -1,4 +1,6 @@
-from tkinter import Tk, mainloop, Label, Button, Frame
+from tkinter import Tk, mainloop, Label, Button, Frame, StringVar
+from tkinter.ttk import Combobox, Style
+from ttkthemes import ThemedTk
 from json import dump
 
 """
@@ -7,32 +9,53 @@ Written by gamerchungus27
 
 
 
-def create_button(caller:object, name:str, master:object, text:str, width:int, height:int, bg:str, bd:int, x:int, y:int):
-    label = Button(master, width=width, height=height, text=text, name=name, bg=bg, bd=bd)
-    caller.place_element(label, x, y)
-    return label
+def create_button(owner_window:object, name:str, master:object, text:str, width:int, height:int, bg:str, bd:int, x:int, y:int):
+    button = Button(master, width=width, height=height, text=text, name=name, bg=bg, bd=bd)
+    owner_window.place_element(button, x, y)
+    return button
 
-def create_label(caller:object, name:str, master:object, text:str, width:int, height:int, bg:str, bd:int, x:int, y:int):
+def create_label(owner_window:object, name:str, master:object, text:str, width:int, height:int, bg:str, bd:int, x:int, y:int):
     label = Label(master, width=width, height=height, text=text, name=name, bg=bg, bd=bd)
-    caller.place_element(label, x, y)
+    owner_window.place_element(label, x, y)
     return label
 
-def create_frame(caller:object, name:str, master:object, text, width:int, height:int, bg:str, bd:int, x:int, y:int):
-    label = Frame(master, width=width, height=height, text=text, name=name, bg=bg, bd=bd)
-    caller.place_element(label, x, y)
-    return label
+def create_frame(owner_window:object, name:str, master:object, width:int, height:int, bg:str, bd:int, x:int, y:int):
+    frame = Frame(master, width=width, height=height, name=name, bg=bg, bd=bd)
+    owner_window.place_element(frame, x, y)
+    return frame
+
+def create_combobox(owner_window:object, name:str, master:object, value:list, width:int, height:int, x:int, y:int):
+    combobox = Combobox(master, width=width, height=height, name=name, values=value, state='readonly')
+    owner_window.place_element(combobox, x, y)
+    return combobox
 
 
-class Application(Tk):
+class Application(ThemedTk):
     def __init__(self):
         super().__init__()
+        self.style = Style()
+        self.style.theme_use('arc')
         self.title("TkBuilder")
+        self.real_children = []
         self.resizable(True,True)
         self.geometry('800x700')
         self.minsize(800,700)
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.bind("<Map>", self.unminimised)
         self.bind("<Unmap>", self.minimised)
+
+        self.primary_frame = Frame(self, bg='gray75', bd=1); self.primary_frame.pack(anchor="e")
+        self.primary_panel = Label(self.primary_frame, bd=0, width=20, height=40, bg="gray95"); self.primary_panel.pack(padx=0,pady=0)
+
+        self.create_gui()
+
+
+    def create_gui(self):
+        create_button(self, "test_button", self.primary_panel, "test", 5, 2, "gray90", 0, 10, 10)
+        create_combobox(self, "test_optionmenu", self.primary_panel, ["Hi", "Bye", "Hello"], 5, 0, 75, 20)
+    
+
+    
 
     def close(self):
         BUILD_WINDOW.destroy()
@@ -44,14 +67,19 @@ class Application(Tk):
     def minimised(self,event):
         BUILD_WINDOW.iconify()
 
-    def compile_WINDOW(self):
-        for child,x,y in self.children:
-            child.place(x=x, y=y)
+    def place_element(self, item, x, y):
+        item.place(x=x, y=y)
+        item.name = item.winfo_name()
+        self.real_children.append(item)
+
+    
 
 
 class APP_WINDOW(Tk):
     def __init__(self):
         super().__init__()
+        self.style = Style(self)
+        self.style.theme_use('alt')
         self.real_children = []
         self.name = "WINDOW"
         self.load_order = 0
@@ -62,11 +90,7 @@ class APP_WINDOW(Tk):
         self.bind("<Map>", self.unminimised)
         self.bind("<Unmap>", self.minimised)
 
-        self.label = create_label(self, "master_label", self, "", 400, 75, 'white', 0, 25, 5)
-        self.button = create_button(self, "button", self.label, 1, 10, 2, 'white', 1, 0, 0)
-        self.button1 = create_button(self, "button1", self.label, 1, 10, 2, 'white', 1, 100, 100)
-        self.button2 = create_button(self, "button2", self.label, 1, 10, 2, 'white', 1, 200, 200)
-        self.button3 = create_button(self, "button3", self.label, 1, 10, 2, 'white', 1, 300, 300)
+        create_button(self, "test_button", self, "test", 5, 2, "gray90", 0, 10, 10)
 
     
     def place_element(self, item, x, y):
@@ -83,6 +107,7 @@ class APP_WINDOW(Tk):
         self.save_json()
         for child in self.winfo_children():
             child.destroy()
+        self.real_children = []
 
     def save_json(self):
         if self.winfo_children():
@@ -95,12 +120,15 @@ class APP_WINDOW(Tk):
                             "master": child.master.name,
                             "bg": child['bg'],
                             "bd": child['bd'],
-                            "text": child['text'],
                             "width": child['width'],
                             "height": child['height'],
                             "x": child.winfo_x(),
-                            "y": child.winfo_y()
+                            "y": child.winfo_y(),
                         }
+                    try: #Checks to see if object has "text" option. If not, passes.
+                        data[str(child.winfo_name())]['text'] = child['text']
+                    except Exception as e:
+                        pass
                 dump(data, file)
 
        
@@ -114,20 +142,19 @@ class APP_WINDOW(Tk):
     def minimised(self,event):
         WINDOW.iconify()
     
-WINDOW = Application()
-BUILD_WINDOW = APP_WINDOW()
 
 
-frame = Frame(WINDOW, bg='gray75', bd=1); frame.pack(anchor="e")
-panel = Label(frame, bd=0, width=20, height=40, bg="gray95"); panel.pack(padx=0,pady=0)
 
-def update_build_WINDOW():
-    BUILD_WINDOW.geometry("{0}x{1}+{2}+{3}".format(WINDOW.winfo_width() - 250, WINDOW.winfo_height() - 125, WINDOW.winfo_x() + 50, WINDOW.winfo_y() + 50))
+
+
+if __name__ == "__main__":
+    WINDOW = Application()
+    BUILD_WINDOW = APP_WINDOW()
+    
+    def update_build_WINDOW():
+        BUILD_WINDOW.geometry("{0}x{1}+{2}+{3}".format(WINDOW.winfo_width() - 250, WINDOW.winfo_height() - 125, WINDOW.winfo_x() + 50, WINDOW.winfo_y() + 50))
+        BUILD_WINDOW.after(1, update_build_WINDOW)
+    
     BUILD_WINDOW.after(1, update_build_WINDOW)
 
-
-BUILD_WINDOW.after(1, update_build_WINDOW)
-
-
-
-mainloop()
+    mainloop()
